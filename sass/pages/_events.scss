@@ -59,8 +59,62 @@
   background: rgba(255, 255, 255, 0.88);
 }
 
-.events-note code {
-  font-size: 0.95em;
+.events-note-copy {
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.events-note a {
+  color: $accent-color;
+  font-weight: 700;
+}
+
+.events-legend {
+  display: grid;
+  gap: 12px;
+}
+
+.events-legend-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.event-type-cna {
+  --event-color: #0b3d74;
+  --event-soft: rgba(11, 61, 116, 0.12);
+}
+
+.event-type-school {
+  --event-color: #11766f;
+  --event-soft: rgba(17, 118, 111, 0.12);
+}
+
+.event-type-conference {
+  --event-color: #c77300;
+  --event-soft: rgba(199, 115, 0, 0.12);
+}
+
+.event-type-imported {
+  --event-color: #9a4057;
+  --event-soft: rgba(154, 64, 87, 0.12);
+}
+
+.events-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 88px;
+  padding: 7px 12px;
+  border: 1px solid var(--event-color, rgba(7, 47, 86, 0.2));
+  border-radius: 999px;
+  background: var(--event-soft, rgba(7, 47, 86, 0.08));
+  color: var(--event-color, $accent-color);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
 }
 
 .events-calendar-card {
@@ -140,7 +194,11 @@
 
 .events-day-button {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 46px;
+  padding: 10px 6px 14px;
   border: 1px solid rgba(7, 47, 86, 0.12);
   border-radius: 8px;
   background: white;
@@ -157,28 +215,35 @@
 }
 
 .events-day-button.has-events {
-  border-color: rgba(7, 47, 86, 0.26);
-  background: rgba(7, 47, 86, 0.08);
-  color: $accent-color;
+  border-color: var(--event-color, rgba(7, 47, 86, 0.26));
+  background: var(--event-soft, rgba(7, 47, 86, 0.08));
+  color: var(--event-color, $accent-color);
   font-weight: 700;
 }
 
-.events-day-button.has-events::after {
-  content: "";
+.events-day-number {
+  line-height: 1;
+}
+
+.events-day-markers {
+  display: flex;
+  gap: 4px;
   position: absolute;
   left: 50%;
   bottom: 6px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
   transform: translateX(-50%);
 }
 
+.events-day-marker {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--event-color, currentColor);
+}
+
 .events-day-button.is-selected {
-  background: $accent-color;
   border-color: $accent-color;
-  color: white;
+  box-shadow: inset 0 0 0 2px $accent-color;
 }
 
 .events-day-button.is-empty {
@@ -203,28 +268,44 @@
 .events-calendar-details-list {
   display: grid;
   gap: 12px;
+  margin: 0;
+  padding-left: 0;
 }
 
 .events-calendar-event {
-  padding: 14px 16px;
+  padding: 16px 18px;
   border-radius: 8px;
   background: white;
   border: 1px solid rgba(7, 47, 86, 0.08);
+  border-left: 6px solid var(--event-color, rgba(7, 47, 86, 0.08));
 }
 
 .events-calendar-event a {
-  color: $accent-color;
+  display: block;
+  margin-bottom: 6px;
+  color: #2f3942;
   font-weight: 400;
+  line-height: 1.4;
+}
+
+.events-calendar-event a:hover,
+.events-calendar-event a:focus-visible {
+  color: var(--event-color, $accent-color);
 }
 
 .events-calendar-event-meta {
   display: block;
-  margin-top: 6px;
+  margin: 0;
   color: #6f7a83;
   font-size: 16px;
 }
 
+.events-calendar-event-header {
+  margin-bottom: 12px;
+}
+
 .events-calendar-event.is-empty {
+  border-left-color: rgba(7, 47, 86, 0.08);
   color: #6f7a83;
 }
 
@@ -257,6 +338,7 @@
   align-items: stretch;
   padding: 20px;
   border: 1px solid rgba(7, 47, 86, 0.1);
+  border-left: 6px solid var(--event-color, rgba(7, 47, 86, 0.1));
   border-radius: 8px;
   background: white;
   box-shadow: 0 10px 24px rgba(7, 47, 86, 0.05);
@@ -270,7 +352,7 @@
   min-height: 110px;
   padding: 12px;
   border-radius: 8px;
-  background: #173d63;
+  background: var(--event-color, #173d63);
   color: white;
   text-align: center;
 }
@@ -291,8 +373,16 @@
   text-transform: uppercase;
 }
 
+.events-item-topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 10px;
+}
+
 .events-item-date {
-  margin: 0 0 8px;
+  margin: 0;
   color: #6f7a83;
   font-size: 15px;
 }
@@ -335,6 +425,11 @@
   .events-copy,
   .events-calendar-card {
     padding: 22px;
+  }
+
+  .events-legend-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .events-lead {

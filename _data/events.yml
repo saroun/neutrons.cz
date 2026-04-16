@@ -2,48 +2,58 @@
   title: Czech Neutron Users Workshop 2026
   url: https://example.com/events/czech-neutron-users-workshop-2026
   location: Brno, Česko
+  type: cna
 
 - date: '2026-06-22'
   title: Summer School on Neutron Imaging
   url: https://example.com/events/summer-school-neutron-imaging
   location: Liberec, Česko
+  type: school
 
 - date: '2026-09-07'
   title: Central European School on Scattering Methods
   url: https://example.com/events/central-european-school-scattering-methods
   location: Vídeň, Rakousko
+  type: school
 
 - date: '2026-10-15'
   title: Conference on Neutron Materials Research
   url: https://example.com/events/conference-neutron-materials-research
   location: Praha, Česko
+  type: conference
 
 - date: '2026-11-19'
   title: Workshop on Advanced Diffraction Data Analysis
   url: https://example.com/events/workshop-advanced-diffraction-data-analysis
   location: Online
+  type: imported
 
 - date: '2027-01-19'
   title: Winter School of Diffraction Data Analysis
   url: https://example.com/events/winter-school-diffraction-data-analysis
   location: Grenoble, Francie
+  type: school
 
 - date: '2027-03-11'
   title: Young Researchers Neutron Forum
   url: https://example.com/events/young-researchers-neutron-forum
   location: Varšava, Polsko
+  type: conference
 
 - date: '2027-05-24'
   title: Advanced Neutron Spectroscopy Bootcamp
   url: https://example.com/events/advanced-neutron-spectroscopy-bootcamp
   location: Lund, Švédsko
+  type: school
 
 - date: '2027-07-08'
   title: Workshop on Sustainable Beamtime Data Pipelines
   url: https://example.com/events/workshop-sustainable-beamtime-data-pipelines
   location: Online
+  type: imported
 
 - date: '2027-09-13'
   title: European Workshop on Neutron Instrumentation
   url: https://example.com/events/european-workshop-neutron-instrumentation
   location: Garching, Německo
+  type: conference

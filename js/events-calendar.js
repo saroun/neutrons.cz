@@ -11,6 +11,21 @@
     }
 
     var rawEvents;
+    var typeLabels = {
+      cna: "CNA",
+      school: "Škola",
+      conference: "Konference",
+      imported: "Import"
+    };
+
+    function normalizeType(typeValue) {
+      if (typeValue === "cna" || typeValue === "school" || typeValue === "conference" || typeValue === "imported") {
+        return typeValue;
+      }
+
+      return "conference";
+    }
+
     try {
       rawEvents = JSON.parse(dataElement.textContent);
     } catch (error) {
@@ -22,10 +37,14 @@
         return eventItem && eventItem.date;
       })
       .map(function (eventItem) {
+        var eventType = normalizeType(eventItem.type);
+
         return {
           title: eventItem.title,
           url: eventItem.url,
           location: eventItem.location,
+          type: eventType,
+          typeLabel: typeLabels[eventType],
           dateKey: String(eventItem.date).slice(0, 10),
           monthKey: String(eventItem.date).slice(0, 7)
         };
@@ -93,13 +112,38 @@
     }
 
     function createDayCell(dayNumber, dateKey, hasEvents) {
+      var dayEvents = eventsByDate[dateKey] || [];
+      var uniqueTypes = [];
       var button = document.createElement("button");
+      var dayNumberElement = document.createElement("span");
+
       button.type = "button";
       button.className = "events-day-button";
-      button.textContent = dayNumber;
+      dayNumberElement.className = "events-day-number";
+      dayNumberElement.textContent = dayNumber;
+      button.appendChild(dayNumberElement);
+
+      dayEvents.forEach(function (eventItem) {
+        if (uniqueTypes.indexOf(eventItem.type) === -1) {
+          uniqueTypes.push(eventItem.type);
+        }
+      });
 
       if (hasEvents) {
         button.className += " has-events";
+        button.className += " event-type-" + uniqueTypes[0];
+
+        var markers = document.createElement("span");
+        markers.className = "events-day-markers";
+
+        uniqueTypes.forEach(function (eventType) {
+          var marker = document.createElement("span");
+          marker.className = "events-day-marker event-type-" + eventType;
+          marker.setAttribute("aria-hidden", "true");
+          markers.appendChild(marker);
+        });
+
+        button.appendChild(markers);
       }
 
       if (dateKey === selectedDateKey) {
@@ -124,7 +168,16 @@
 
     function createDetailItem(eventItem, includeDate) {
       var listItem = document.createElement("li");
+      var header = document.createElement("div");
+      var badge = document.createElement("span");
       listItem.className = "events-calendar-event";
+      listItem.className += " event-type-" + eventItem.type;
+
+      header.className = "events-calendar-event-header";
+      badge.className = "events-type-badge";
+      badge.className += " event-type-" + eventItem.type;
+      badge.textContent = eventItem.typeLabel;
+      header.appendChild(badge);
 
       var link = document.createElement("a");
       link.href = eventItem.url;
@@ -138,6 +191,7 @@
         ? formatCompactDate(eventItem.dateKey) + " - " + eventItem.location
         : eventItem.location;
 
+      listItem.appendChild(header);
       listItem.appendChild(link);
       listItem.appendChild(meta);
 

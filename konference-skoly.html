@@ -12,7 +12,27 @@ permalink: /konference-skoly
     <div class="events-copy">
       <p class="events-kicker">Přehled akcí</p>
       <p class="events-lead">Konference, workshopy a školy pro neutronovou komunitu na jednom místě.</p>
-      <p class="events-note">Níže jsou zatím ukázková testovací data uložená v <code>_data/events.yml</code>. Jakmile si ověříme, že struktura vyhovuje, můžeme je snadno napojit na automatický import.</p>
+      <div class="events-note">
+        <p class="events-note-copy">Víte o konferenci, škole nebo jiné akci, která by tu měla být? Napište nám na <a href="mailto:info@neutrons.cz">info@neutrons.cz</a>.</p>
+        <ul class="events-legend">
+          <li class="events-legend-item">
+            <span class="events-type-badge event-type-cna">CNA</span>
+            <span>Akce pořádané Českou neutronovou asociací.</span>
+          </li>
+          <li class="events-legend-item">
+            <span class="events-type-badge event-type-school">Škola</span>
+            <span>Školy, kurzy a vzdělávací programy.</span>
+          </li>
+          <li class="events-legend-item">
+            <span class="events-type-badge event-type-conference">Konference</span>
+            <span>Konference, workshopy a odborná setkání.</span>
+          </li>
+          <li class="events-legend-item">
+            <span class="events-type-badge event-type-imported">Import</span>
+            <span>Akce převzaté z externích zdrojů.</span>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <section class="events-calendar-card" data-events-calendar>
@@ -51,6 +71,19 @@ permalink: /konference-skoly
     {% assign current_year = "" %}
     {% for event in sorted_events %}
       {% assign event_year = event.date | date: "%Y" %}
+      {% assign event_type = event.type | default: "conference" %}
+      {% case event_type %}
+        {% when "cna" %}
+          {% assign event_type_label = "CNA" %}
+        {% when "school" %}
+          {% assign event_type_label = "Škola" %}
+        {% when "conference" %}
+          {% assign event_type_label = "Konference" %}
+        {% when "imported" %}
+          {% assign event_type_label = "Import" %}
+        {% else %}
+          {% assign event_type_label = "Konference" %}
+      {% endcase %}
       {% if event_year != current_year %}
         {% unless forloop.first %}
         </div>
@@ -62,14 +95,17 @@ permalink: /konference-skoly
         {% assign current_year = event_year %}
       {% endif %}
 
-      <article class="events-item">
+      <article class="events-item event-type-{{ event_type }}">
         <div class="events-date-badge">
           <span class="events-day">{{ event.date | date: "%-d" }}</span>
           <span class="events-month">{{ event.date | date: "%m/%Y" }}</span>
         </div>
 
         <div class="events-content">
-          <p class="events-item-date">{{ event.date | date: "%-d. %-m. %Y" }}</p>
+          <div class="events-item-topline">
+            <span class="events-type-badge event-type-{{ event_type }}">{{ event_type_label }}</span>
+            <p class="events-item-date">{{ event.date | date: "%-d. %-m. %Y" }}</p>
+          </div>
           <h3 class="events-item-title">
             <a href="{{ event.url }}" target="_blank" rel="noopener noreferrer">{{ event.title }}</a>
           </h3>
