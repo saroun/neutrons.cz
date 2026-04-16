@@ -272,8 +272,9 @@
   padding-left: 0;
 }
 
-.events-calendar-event {
+.events-page  li.events-calendar-event {
   padding: 16px 18px;
+  padding-left: 18px;
   border-radius: 8px;
   background: white;
   border: 1px solid rgba(7, 47, 86, 0.08);
