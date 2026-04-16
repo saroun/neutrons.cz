@@ -26,64 +26,51 @@
       return "conference";
     }
 
-    try {
-      rawEvents = JSON.parse(dataElement.textContent);
-    } catch (error) {
-      return;
+    function parseDateKey(dateKey) {
+      var parts = String(dateKey).split("-");
+
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     }
 
-    var events = rawEvents
-      .filter(function (eventItem) {
-        return eventItem && eventItem.date;
-      })
-      .map(function (eventItem) {
-        var eventType = normalizeType(eventItem.type);
+    function toDateKey(dateValue) {
+      var year = String(dateValue.getFullYear());
+      var month = String(dateValue.getMonth() + 1).padStart(2, "0");
+      var day = String(dateValue.getDate()).padStart(2, "0");
 
-        return {
-          title: eventItem.title,
-          url: eventItem.url,
-          location: eventItem.location,
-          type: eventType,
-          typeLabel: typeLabels[eventType],
-          dateKey: String(eventItem.date).slice(0, 10),
-          monthKey: String(eventItem.date).slice(0, 7)
-        };
-      })
-      .sort(function (left, right) {
-        return left.dateKey.localeCompare(right.dateKey);
-      });
-
-    if (!events.length) {
-      return;
+      return year + "-" + month + "-" + day;
     }
 
-    var labelElement = root.querySelector("[data-calendar-label]");
-    var gridElement = root.querySelector("[data-calendar-grid]");
-    var detailTitleElement = root.querySelector("[data-calendar-detail-title]");
-    var detailListElement = root.querySelector("[data-calendar-detail-list]");
-    var prevButton = root.querySelector("[data-calendar-prev]");
-    var nextButton = root.querySelector("[data-calendar-next]");
+    function getDateKeysInRange(startDateKey, endDateKey) {
+      var dateKeys = [];
+      var currentDate = parseDateKey(startDateKey);
+      var finalDate = parseDateKey(endDateKey);
 
-    var eventsByDate = {};
-    var monthKeys = [];
-
-    events.forEach(function (eventItem) {
-      if (!eventsByDate[eventItem.dateKey]) {
-        eventsByDate[eventItem.dateKey] = [];
+      while (currentDate <= finalDate) {
+        dateKeys.push(toDateKey(currentDate));
+        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
       }
-      eventsByDate[eventItem.dateKey].push(eventItem);
 
-      if (monthKeys.indexOf(eventItem.monthKey) === -1) {
-        monthKeys.push(eventItem.monthKey);
+      return dateKeys;
+    }
+
+    function getMonthKeysInRange(startDateKey, endDateKey) {
+      var monthKeys = [];
+      var currentDate = parseDateKey(startDateKey);
+      var finalDate = parseDateKey(endDateKey);
+      var currentMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      var finalMonthDate = new Date(finalDate.getFullYear(), finalDate.getMonth(), 1);
+
+      while (currentMonthDate <= finalMonthDate) {
+        monthKeys.push(
+          currentMonthDate.getFullYear() +
+            "-" +
+            String(currentMonthDate.getMonth() + 1).padStart(2, "0")
+        );
+
+        currentMonthDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 1);
       }
-    });
 
-    var currentMonthIndex = 0;
-    var selectedDateKey = null;
-
-    function getMonthDate(monthKey) {
-      var parts = monthKey.split("-");
-      return new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+      return monthKeys;
     }
 
     function formatMonth(monthDate) {
@@ -96,7 +83,7 @@
     }
 
     function formatDate(dateKey) {
-      return new Date(dateKey + "T00:00:00").toLocaleDateString("cs-CZ", {
+      return parseDateKey(dateKey).toLocaleDateString("cs-CZ", {
         day: "numeric",
         month: "long",
         year: "numeric"
@@ -104,14 +91,108 @@
     }
 
     function formatCompactDate(dateKey) {
-      return new Date(dateKey + "T00:00:00").toLocaleDateString("cs-CZ", {
+      return parseDateKey(dateKey).toLocaleDateString("cs-CZ", {
         day: "numeric",
         month: "numeric",
         year: "numeric"
       });
     }
 
-    function createDayCell(dayNumber, dateKey, hasEvents) {
+    function formatEventDateRange(eventItem) {
+      if (eventItem.startDateKey === eventItem.endDateKey) {
+        return formatCompactDate(eventItem.startDateKey);
+      }
+
+      return formatCompactDate(eventItem.startDateKey) + " - " + formatCompactDate(eventItem.endDateKey);
+    }
+
+    try {
+      rawEvents = JSON.parse(dataElement.textContent);
+    } catch (error) {
+      return;
+    }
+
+    var events = rawEvents
+      .filter(function (eventItem) {
+        return eventItem && eventItem.date;
+      })
+      .map(function (eventItem) {
+        var eventType = normalizeType(eventItem.type);
+        var startDateKey = String(eventItem.date).slice(0, 10);
+        var endDateKey = eventItem.end_date ? String(eventItem.end_date).slice(0, 10) : startDateKey;
+
+        if (endDateKey < startDateKey) {
+          endDateKey = startDateKey;
+        }
+
+        return {
+          title: eventItem.title,
+          url: eventItem.url,
+          location: eventItem.location,
+          type: eventType,
+          typeLabel: typeLabels[eventType],
+          startDateKey: startDateKey,
+          endDateKey: endDateKey,
+          dateKeys: getDateKeysInRange(startDateKey, endDateKey),
+          monthKeys: getMonthKeysInRange(startDateKey, endDateKey)
+        };
+      })
+      .sort(function (left, right) {
+        var byStartDate = left.startDateKey.localeCompare(right.startDateKey);
+
+        if (byStartDate !== 0) {
+          return byStartDate;
+        }
+
+        var byEndDate = left.endDateKey.localeCompare(right.endDateKey);
+
+        if (byEndDate !== 0) {
+          return byEndDate;
+        }
+
+        return (left.title || "").localeCompare(right.title || "");
+      });
+
+    if (!events.length) {
+      return;
+    }
+
+    var labelElement = root.querySelector("[data-calendar-label]");
+    var gridElement = root.querySelector("[data-calendar-grid]");
+    var detailTitleElement = root.querySelector("[data-calendar-detail-title]");
+    var detailListElement = root.querySelector("[data-calendar-detail-list]");
+    var prevButton = root.querySelector("[data-calendar-prev]");
+    var nextButton = root.querySelector("[data-calendar-next]");
+    var eventsByDate = {};
+    var monthKeys = [];
+    var currentMonthIndex = 0;
+    var selectedDateKey = null;
+
+    events.forEach(function (eventItem) {
+      eventItem.dateKeys.forEach(function (dateKey) {
+        if (!eventsByDate[dateKey]) {
+          eventsByDate[dateKey] = [];
+        }
+
+        eventsByDate[dateKey].push(eventItem);
+      });
+
+      eventItem.monthKeys.forEach(function (monthKey) {
+        if (monthKeys.indexOf(monthKey) === -1) {
+          monthKeys.push(monthKey);
+        }
+      });
+    });
+
+    monthKeys.sort();
+
+    function getMonthDate(monthKey) {
+      var parts = monthKey.split("-");
+
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+    }
+
+    function createDayCell(dayNumber, dateKey) {
       var dayEvents = eventsByDate[dateKey] || [];
       var uniqueTypes = [];
       var button = document.createElement("button");
@@ -129,7 +210,7 @@
         }
       });
 
-      if (hasEvents) {
+      if (dayEvents.length) {
         button.className += " has-events";
         button.className += " event-type-" + uniqueTypes[0];
 
@@ -166,10 +247,18 @@
       return element;
     }
 
-    function createDetailItem(eventItem, includeDate) {
+    function createDetailItem(eventItem) {
       var listItem = document.createElement("li");
       var header = document.createElement("div");
       var badge = document.createElement("span");
+      var link = document.createElement("a");
+      var meta = document.createElement("span");
+      var metaParts = [formatEventDateRange(eventItem)];
+
+      if (eventItem.location) {
+        metaParts.push(eventItem.location);
+      }
+
       listItem.className = "events-calendar-event";
       listItem.className += " event-type-" + eventItem.type;
 
@@ -179,17 +268,13 @@
       badge.textContent = eventItem.typeLabel;
       header.appendChild(badge);
 
-      var link = document.createElement("a");
       link.href = eventItem.url;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       link.textContent = eventItem.title;
 
-      var meta = document.createElement("span");
       meta.className = "events-calendar-event-meta";
-      meta.textContent = includeDate
-        ? formatCompactDate(eventItem.dateKey) + " - " + eventItem.location
-        : eventItem.location;
+      meta.textContent = metaParts.join(" | ");
 
       listItem.appendChild(header);
       listItem.appendChild(link);
@@ -209,7 +294,7 @@
       var monthDate = getMonthDate(monthKey);
       var selectedDayEvents = selectedDateKey ? eventsByDate[selectedDateKey] || [] : [];
       var monthEvents = events.filter(function (eventItem) {
-        return eventItem.monthKey === monthKey;
+        return eventItem.monthKeys.indexOf(monthKey) !== -1;
       });
       var showingSelectedDay = Boolean(selectedDateKey);
 
@@ -220,7 +305,7 @@
 
         if (selectedDayEvents.length) {
           selectedDayEvents.forEach(function (eventItem) {
-            detailListElement.appendChild(createDetailItem(eventItem, false));
+            detailListElement.appendChild(createDetailItem(eventItem));
           });
         } else {
           detailListElement.appendChild(
@@ -241,7 +326,7 @@
       }
 
       monthEvents.forEach(function (eventItem) {
-        detailListElement.appendChild(createDetailItem(eventItem, true));
+        detailListElement.appendChild(createDetailItem(eventItem));
       });
     }
 
@@ -270,9 +355,8 @@
         var monthNumber = String(month + 1).padStart(2, "0");
         var dayNumber = String(day).padStart(2, "0");
         var dateKey = year + "-" + monthNumber + "-" + dayNumber;
-        var hasEvents = Boolean(eventsByDate[dateKey] && eventsByDate[dateKey].length);
 
-        gridElement.appendChild(createDayCell(day, dateKey, hasEvents));
+        gridElement.appendChild(createDayCell(day, dateKey));
       }
 
       renderDetails(monthKey);

@@ -373,6 +373,15 @@
   text-transform: uppercase;
 }
 
+.events-date-range {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+}
+
 .events-item-topline {
   display: flex;
   flex-wrap: wrap;

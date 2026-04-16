@@ -1,3 +1,5 @@
+# Optional: use `end_date` for multi-day events.
+
 - date: '2026-05-14'
   title: Czech Neutron Users Workshop 2026
   url: https://example.com/events/czech-neutron-users-workshop-2026

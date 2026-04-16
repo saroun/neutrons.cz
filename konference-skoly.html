@@ -4,7 +4,27 @@ title: Konference, školy
 permalink: /konference-skoly
 ---
 
-{% assign sorted_events = site.data.events | sort: "date" %}
+{% assign manual_events = site.data.events %}
+{% assign imported_events = site.data["import"] %}
+
+{% unless manual_events %}
+  {% assign manual_events = "" | split: "" %}
+{% endunless %}
+
+{% unless imported_events %}
+  {% assign imported_events = "" | split: "" %}
+{% endunless %}
+
+{% assign manual_titles = manual_events | map: "title" %}
+{% assign imported_unique = "" | split: "" %}
+
+{% for imported_event in imported_events %}
+  {% unless manual_titles contains imported_event.title %}
+    {% assign imported_unique = imported_unique | push: imported_event %}
+  {% endunless %}
+{% endfor %}
+
+{% assign sorted_events = manual_events | concat: imported_unique | sort: "date" %}
 
 {% if sorted_events and sorted_events.size > 0 %}
 <div class="events-page">
@@ -72,6 +92,14 @@ permalink: /konference-skoly
     {% for event in sorted_events %}
       {% assign event_year = event.date | date: "%Y" %}
       {% assign event_type = event.type | default: "conference" %}
+      {% assign has_end_date = false %}
+      {% if event.end_date %}
+        {% assign event_start_key = event.date | date: "%F" %}
+        {% assign event_end_key = event.end_date | date: "%F" %}
+        {% if event_end_key != event_start_key %}
+          {% assign has_end_date = true %}
+        {% endif %}
+      {% endif %}
       {% case event_type %}
         {% when "cna" %}
           {% assign event_type_label = "CNA" %}
@@ -99,12 +127,21 @@ permalink: /konference-skoly
         <div class="events-date-badge">
           <span class="events-day">{{ event.date | date: "%-d" }}</span>
           <span class="events-month">{{ event.date | date: "%m/%Y" }}</span>
+          {% if has_end_date %}
+            <span class="events-date-range">do {{ event.end_date | date: "%-d. %-m. %Y" }}</span>
+          {% endif %}
         </div>
 
         <div class="events-content">
           <div class="events-item-topline">
             <span class="events-type-badge event-type-{{ event_type }}">{{ event_type_label }}</span>
-            <p class="events-item-date">{{ event.date | date: "%-d. %-m. %Y" }}</p>
+            <p class="events-item-date">
+              {% if has_end_date %}
+                {{ event.date | date: "%-d. %-m. %Y" }} - {{ event.end_date | date: "%-d. %-m. %Y" }}
+              {% else %}
+                {{ event.date | date: "%-d. %-m. %Y" }}
+              {% endif %}
+            </p>
           </div>
           <h3 class="events-item-title">
             <a href="{{ event.url }}" target="_blank" rel="noopener noreferrer">{{ event.title }}</a>
