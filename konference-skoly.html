@@ -1,0 +1,93 @@
+---
+layout: page
+title: Konference, školy
+permalink: /konference-skoly
+---
+
+{% assign sorted_events = site.data.events | sort: "date" %}
+
+{% if sorted_events and sorted_events.size > 0 %}
+<div class="events-page">
+  <div class="events-hero">
+    <div class="events-copy">
+      <p class="events-kicker">Přehled akcí</p>
+      <p class="events-lead">Konference, workshopy a školy pro neutronovou komunitu na jednom místě.</p>
+      <p class="events-note">Níže jsou zatím ukázková testovací data uložená v <code>_data/events.yml</code>. Jakmile si ověříme, že struktura vyhovuje, můžeme je snadno napojit na automatický import.</p>
+    </div>
+
+    <section class="events-calendar-card" data-events-calendar>
+      <div class="events-calendar-top">
+        <p class="events-kicker">Kalendář akcí</p>
+        <div class="events-calendar-controls">
+          <button type="button" class="events-calendar-nav" data-calendar-prev aria-label="Předchozí měsíc">&larr;</button>
+          <h2 class="events-calendar-label" data-calendar-label></h2>
+          <button type="button" class="events-calendar-nav" data-calendar-next aria-label="Další měsíc">&rarr;</button>
+        </div>
+      </div>
+
+      <div class="events-calendar-weekdays" aria-hidden="true">
+        <span>Po</span>
+        <span>Út</span>
+        <span>St</span>
+        <span>Čt</span>
+        <span>Pá</span>
+        <span>So</span>
+        <span>Ne</span>
+      </div>
+
+      <div class="events-calendar-grid" data-calendar-grid></div>
+
+      <div class="events-calendar-details">
+        <h3 class="events-calendar-details-title" data-calendar-detail-title></h3>
+        <ul class="events-calendar-details-list" data-calendar-detail-list></ul>
+      </div>
+
+      <script type="application/json" data-events-json>{{ sorted_events | jsonify }}</script>
+    </section>
+  </div>
+
+  <div class="events-listing">
+    <p class="events-kicker">Seznam akcí</p>
+    {% assign current_year = "" %}
+    {% for event in sorted_events %}
+      {% assign event_year = event.date | date: "%Y" %}
+      {% if event_year != current_year %}
+        {% unless forloop.first %}
+        </div>
+      </section>
+        {% endunless %}
+      <section class="events-year-section">
+        <h2 class="events-year">{{ event_year }}</h2>
+        <div class="events-list">
+        {% assign current_year = event_year %}
+      {% endif %}
+
+      <article class="events-item">
+        <div class="events-date-badge">
+          <span class="events-day">{{ event.date | date: "%-d" }}</span>
+          <span class="events-month">{{ event.date | date: "%m/%Y" }}</span>
+        </div>
+
+        <div class="events-content">
+          <p class="events-item-date">{{ event.date | date: "%-d. %-m. %Y" }}</p>
+          <h3 class="events-item-title">
+            <a href="{{ event.url }}" target="_blank" rel="noopener noreferrer">{{ event.title }}</a>
+          </h3>
+          <p class="events-item-meta">{{ event.location }}</p>
+        </div>
+      </article>
+
+      {% if forloop.last %}
+        </div>
+      </section>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<script src="{{ '/js/events-calendar.js' | relative_url }}"></script>
+{% else %}
+<div class="events-empty-state">
+  <p>Seznam akcí je zatím prázdný.</p>
+</div>
+{% endif %}
