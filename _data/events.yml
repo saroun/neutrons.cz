@@ -5,6 +5,13 @@
   location: 'Online, UK'
   type: school
 
+- date: '2026-03-23'
+  end_date: '2026-04-28'
+  title: 'Test'
+  url: 'https://indico.stfc.ac.uk/event/792/'
+  location: 'Online, UK'
+  type: school
+
 - date: '2026-04-26'
   end_date: '2026-05-01'
   title: 'Gordon Research Conference (GRC) on Neutron Scattering'
@@ -25,6 +32,12 @@
   url: 'https://indico.frm2.tum.de/event/570/'
   location: 'Munich'
   type: conference
+
+- date: '2026-05-26'
+  title: 'Schůze delegátů CNA'
+  url: 'https://neutrons.cz/'
+  location: 'od 18:00, místnost F1, Ke Karlovu 5, Praha 2'
+  type: cna
 
 - date: '2026-05-27'
   end_date: '2026-05-29'

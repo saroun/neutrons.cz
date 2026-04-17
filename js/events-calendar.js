@@ -34,6 +34,10 @@
       return year + "-" + month + "-" + day;
     }
 
+    function maxDateKey(leftDateKey, rightDateKey) {
+      return leftDateKey > rightDateKey ? leftDateKey : rightDateKey;
+    }
+
     function getDateKeysInRange(startDateKey, endDateKey) {
       var dateKeys = [];
       var currentDate = parseDateKey(startDateKey);
@@ -97,6 +101,10 @@
       return;
     }
 
+    var today = new Date();
+    var currentMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    var currentMonthKey = toDateKey(currentMonthDate).slice(0, 7);
+    var currentMonthStartKey = currentMonthKey + "-01";
     var events = rawEvents
       .filter(function (eventItem) {
         return eventItem && eventItem.date;
@@ -105,18 +113,23 @@
         var eventType = normalizeType(eventItem.type);
         var startDateKey = String(eventItem.date).slice(0, 10);
         var endDateKey = eventItem.end_date ? String(eventItem.end_date).slice(0, 10) : startDateKey;
+        var visibleStartDateKey;
 
         if (endDateKey < startDateKey) {
           endDateKey = startDateKey;
         }
+
+        visibleStartDateKey = maxDateKey(startDateKey, currentMonthStartKey);
 
         return {
           title: eventItem.title,
           type: eventType,
           startDateKey: startDateKey,
           endDateKey: endDateKey,
-          dateKeys: getDateKeysInRange(startDateKey, endDateKey),
-          monthKeys: getMonthKeysInRange(startDateKey, endDateKey)
+          visibleStartDateKey: visibleStartDateKey,
+          isCurrentOrFutureMonth: endDateKey >= currentMonthStartKey,
+          dateKeys: endDateKey >= currentMonthStartKey ? getDateKeysInRange(visibleStartDateKey, endDateKey) : [],
+          monthKeys: endDateKey >= currentMonthStartKey ? getMonthKeysInRange(visibleStartDateKey, endDateKey) : []
         };
       })
       .sort(function (left, right) {
@@ -134,10 +147,6 @@
 
         return (left.title || "").localeCompare(right.title || "");
       });
-
-    if (!events.length) {
-      return;
-    }
 
     var labelElement = root.querySelector("[data-calendar-label]");
     var gridElement = root.querySelector("[data-calendar-grid]");
@@ -157,8 +166,11 @@
     var currentMonthIndex = 0;
     var selectedDateKey = null;
     var filterMode = "all";
+    var calendarEvents = events.filter(function (eventItem) {
+      return eventItem.isCurrentOrFutureMonth;
+    });
 
-    events.forEach(function (eventItem) {
+    calendarEvents.forEach(function (eventItem) {
       eventItem.dateKeys.forEach(function (dateKey) {
         if (!eventsByDate[dateKey]) {
           eventsByDate[dateKey] = [];
@@ -174,7 +186,16 @@
       });
     });
 
+    if (monthKeys.indexOf(currentMonthKey) === -1) {
+      monthKeys.push(currentMonthKey);
+    }
+
     monthKeys.sort();
+    currentMonthIndex = monthKeys.indexOf(currentMonthKey);
+
+    if (currentMonthIndex === -1) {
+      currentMonthIndex = 0;
+    }
 
     function getMonthDate(monthKey) {
       var parts = monthKey.split("-");
@@ -195,6 +216,10 @@
     }
 
     function isEventVisibleForCurrentFilter(startDateKey, endDateKey, monthKey) {
+      if (endDateKey < currentMonthStartKey) {
+        return false;
+      }
+
       if (filterMode === "day" && selectedDateKey) {
         return startDateKey <= selectedDateKey && endDateKey >= selectedDateKey;
       }
