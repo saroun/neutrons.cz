@@ -78,23 +78,22 @@ permalink: /konference-skoly
       <div class="events-calendar-grid" data-calendar-grid></div>
 
       <div class="events-calendar-details">
-        <h3 class="events-calendar-details-title" data-calendar-detail-title></h3>
-        <ul class="events-calendar-details-list" data-calendar-detail-list></ul>
+        <button type="button" class="events-calendar-reset" data-calendar-reset>Zobrazit vše</button>
       </div>
 
       <script type="application/json" data-events-json>{{ sorted_events | jsonify }}</script>
     </section>
   </div>
 
-  <div class="events-listing">
-    <p class="events-kicker">Seznam akcí</p>
-    {% assign current_year = "" %}
+  <div class="events-listing" data-events-listing>
+    <p class="events-kicker events-listing-title" data-events-listing-title>Všechny akce</p>
+    <div class="events-list">
     {% for event in sorted_events %}
-      {% assign event_year = event.date | date: "%Y" %}
       {% assign event_type = event.type | default: "conference" %}
       {% assign has_end_date = false %}
+      {% assign event_start_key = event.date | date: "%F" %}
+      {% assign event_end_key = event.date | date: "%F" %}
       {% if event.end_date %}
-        {% assign event_start_key = event.date | date: "%F" %}
         {% assign event_end_key = event.end_date | date: "%F" %}
         {% if event_end_key != event_start_key %}
           {% assign has_end_date = true %}
@@ -112,18 +111,13 @@ permalink: /konference-skoly
         {% else %}
           {% assign event_type_label = "Konference" %}
       {% endcase %}
-      {% if event_year != current_year %}
-        {% unless forloop.first %}
-        </div>
-      </section>
-        {% endunless %}
-      <section class="events-year-section">
-        <h2 class="events-year">{{ event_year }}</h2>
-        <div class="events-list">
-        {% assign current_year = event_year %}
-      {% endif %}
 
-      <article class="events-item event-type-{{ event_type }}">
+      <article
+        class="events-item event-type-{{ event_type }}"
+        data-event-item
+        data-event-start="{{ event_start_key }}"
+        data-event-end="{{ event_end_key }}"
+      >
         <div class="events-date-badge">
           <span class="events-day">{{ event.date | date: "%-d" }}</span>
           <span class="events-month">{{ event.date | date: "%m/%Y" }}</span>
@@ -146,12 +140,11 @@ permalink: /konference-skoly
           <p class="events-item-meta">{{ event.location }}</p>
         </div>
       </article>
-
-      {% if forloop.last %}
-        </div>
-      </section>
-      {% endif %}
     {% endfor %}
+    </div>
+    <div class="events-filter-empty" data-events-empty hidden>
+      <p>Pro tento výběr zatím není evidovaná žádná akce.</p>
+    </div>
   </div>
 </div>
 

@@ -11,12 +11,6 @@
     }
 
     var rawEvents;
-    var typeLabels = {
-      cna: "CNA",
-      school: "Škola",
-      conference: "Konference",
-      imported: "Import"
-    };
 
     function normalizeType(typeValue) {
       if (typeValue === "cna" || typeValue === "school" || typeValue === "conference" || typeValue === "imported") {
@@ -82,28 +76,19 @@
       return label.charAt(0).toUpperCase() + label.slice(1);
     }
 
-    function formatDate(dateKey) {
-      return parseDateKey(dateKey).toLocaleDateString("cs-CZ", {
-        day: "numeric",
+    function formatListingMonth(monthDate) {
+      return monthDate.toLocaleDateString("cs-CZ", {
         month: "long",
         year: "numeric"
       });
     }
 
-    function formatCompactDate(dateKey) {
+    function formatListingDate(dateKey) {
       return parseDateKey(dateKey).toLocaleDateString("cs-CZ", {
         day: "numeric",
-        month: "numeric",
+        month: "long",
         year: "numeric"
       });
-    }
-
-    function formatEventDateRange(eventItem) {
-      if (eventItem.startDateKey === eventItem.endDateKey) {
-        return formatCompactDate(eventItem.startDateKey);
-      }
-
-      return formatCompactDate(eventItem.startDateKey) + " - " + formatCompactDate(eventItem.endDateKey);
     }
 
     try {
@@ -127,10 +112,7 @@
 
         return {
           title: eventItem.title,
-          url: eventItem.url,
-          location: eventItem.location,
           type: eventType,
-          typeLabel: typeLabels[eventType],
           startDateKey: startDateKey,
           endDateKey: endDateKey,
           dateKeys: getDateKeysInRange(startDateKey, endDateKey),
@@ -159,14 +141,22 @@
 
     var labelElement = root.querySelector("[data-calendar-label]");
     var gridElement = root.querySelector("[data-calendar-grid]");
-    var detailTitleElement = root.querySelector("[data-calendar-detail-title]");
-    var detailListElement = root.querySelector("[data-calendar-detail-list]");
     var prevButton = root.querySelector("[data-calendar-prev]");
     var nextButton = root.querySelector("[data-calendar-next]");
+    var resetButton = root.querySelector("[data-calendar-reset]");
+    var listingElement = document.querySelector("[data-events-listing]");
+    var listingTitleElement = listingElement
+      ? listingElement.querySelector("[data-events-listing-title]")
+      : null;
+    var eventItemElements = listingElement
+      ? Array.prototype.slice.call(listingElement.querySelectorAll("[data-event-item]"))
+      : [];
+    var emptyStateElement = listingElement ? listingElement.querySelector("[data-events-empty]") : null;
     var eventsByDate = {};
     var monthKeys = [];
     var currentMonthIndex = 0;
     var selectedDateKey = null;
+    var filterMode = "all";
 
     events.forEach(function (eventItem) {
       eventItem.dateKeys.forEach(function (dateKey) {
@@ -190,6 +180,64 @@
       var parts = monthKey.split("-");
 
       return new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+    }
+
+    function getMonthEndDateKey(monthKey) {
+      var monthDate = getMonthDate(monthKey);
+      return toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
+    }
+
+    function isEventVisibleForMonth(startDateKey, endDateKey, monthKey) {
+      var monthStartDateKey = monthKey + "-01";
+      var monthEndDateKey = getMonthEndDateKey(monthKey);
+
+      return endDateKey >= monthStartDateKey && startDateKey <= monthEndDateKey;
+    }
+
+    function isEventVisibleForCurrentFilter(startDateKey, endDateKey, monthKey) {
+      if (filterMode === "day" && selectedDateKey) {
+        return startDateKey <= selectedDateKey && endDateKey >= selectedDateKey;
+      }
+
+      if (filterMode === "month") {
+        return isEventVisibleForMonth(startDateKey, endDateKey, monthKey);
+      }
+
+      return true;
+    }
+
+    function syncListing(monthKey) {
+      var visibleItemsCount = 0;
+
+      if (!listingElement) {
+        return;
+      }
+
+      if (listingTitleElement) {
+        if (filterMode === "day" && selectedDateKey) {
+          listingTitleElement.textContent = "Akce dne " + formatListingDate(selectedDateKey);
+        } else if (filterMode === "month") {
+          listingTitleElement.textContent = "Akce pro " + formatListingMonth(getMonthDate(monthKey));
+        } else {
+          listingTitleElement.textContent = "Všechny akce";
+        }
+      }
+
+      eventItemElements.forEach(function (eventElement) {
+        var startDateKey = eventElement.getAttribute("data-event-start");
+        var endDateKey = eventElement.getAttribute("data-event-end");
+        var isVisible = isEventVisibleForCurrentFilter(startDateKey, endDateKey, monthKey);
+
+        eventElement.hidden = !isVisible;
+
+        if (isVisible) {
+          visibleItemsCount += 1;
+        }
+      });
+
+      if (emptyStateElement) {
+        emptyStateElement.hidden = visibleItemsCount !== 0;
+      }
     }
 
     function createDayCell(dayNumber, dateKey) {
@@ -233,7 +281,14 @@
       }
 
       button.addEventListener("click", function () {
-        selectedDateKey = selectedDateKey === dateKey ? null : dateKey;
+        if (selectedDateKey === dateKey && filterMode === "day") {
+          selectedDateKey = null;
+          filterMode = "month";
+        } else {
+          selectedDateKey = dateKey;
+          filterMode = "day";
+        }
+
         render();
       });
 
@@ -247,90 +302,6 @@
       return element;
     }
 
-    function createDetailItem(eventItem) {
-      var listItem = document.createElement("li");
-      var footer = document.createElement("div");
-      var badge = document.createElement("span");
-      var link = document.createElement("a");
-      var meta = document.createElement("span");
-      var metaParts = [formatEventDateRange(eventItem)];
-
-      if (eventItem.location) {
-        metaParts.push(eventItem.location);
-      }
-
-      listItem.className = "events-calendar-event";
-      listItem.className += " event-type-" + eventItem.type;
-
-      footer.className = "events-calendar-event-footer";
-      badge.className = "events-type-badge";
-      badge.className += " events-calendar-event-badge";
-      badge.className += " event-type-" + eventItem.type;
-      badge.textContent = eventItem.typeLabel;
-
-      link.href = eventItem.url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = eventItem.title;
-
-      meta.className = "events-calendar-event-meta";
-      meta.textContent = metaParts.join(" | ");
-
-      listItem.appendChild(link);
-      footer.appendChild(meta);
-      footer.appendChild(badge);
-      listItem.appendChild(footer);
-
-      return listItem;
-    }
-
-    function createEmptyDetail(message) {
-      var listItem = document.createElement("li");
-      listItem.className = "events-calendar-event is-empty";
-      listItem.textContent = message;
-      return listItem;
-    }
-
-    function renderDetails(monthKey) {
-      var monthDate = getMonthDate(monthKey);
-      var selectedDayEvents = selectedDateKey ? eventsByDate[selectedDateKey] || [] : [];
-      var monthEvents = events.filter(function (eventItem) {
-        return eventItem.monthKeys.indexOf(monthKey) !== -1;
-      });
-      var showingSelectedDay = Boolean(selectedDateKey);
-
-      detailListElement.innerHTML = "";
-
-      if (showingSelectedDay) {
-        detailTitleElement.textContent = "Akce " + formatDate(selectedDateKey);
-
-        if (selectedDayEvents.length) {
-          selectedDayEvents.forEach(function (eventItem) {
-            detailListElement.appendChild(createDetailItem(eventItem));
-          });
-        } else {
-          detailListElement.appendChild(
-            createEmptyDetail("V tento den zatím není evidovaná žádná akce.")
-          );
-        }
-
-        return;
-      }
-
-      detailTitleElement.textContent = "Akce v měsíci " + formatMonth(monthDate);
-
-      if (!monthEvents.length) {
-        detailListElement.appendChild(
-          createEmptyDetail("V tomto měsíci zatím není evidovaná žádná akce.")
-        );
-        return;
-      }
-
-      monthEvents.forEach(function (eventItem) {
-        detailListElement.appendChild(createDetailItem(eventItem));
-      });
-    }
-
     function render() {
       var monthKey = monthKeys[currentMonthIndex];
       var monthDate = getMonthDate(monthKey);
@@ -341,6 +312,10 @@
 
       if (selectedDateKey && selectedDateKey.slice(0, 7) !== monthKey) {
         selectedDateKey = null;
+
+        if (filterMode === "day") {
+          filterMode = "month";
+        }
       }
 
       labelElement.textContent = formatMonth(monthDate);
@@ -360,7 +335,7 @@
         gridElement.appendChild(createDayCell(day, dateKey));
       }
 
-      renderDetails(monthKey);
+      syncListing(monthKey);
     }
 
     prevButton.addEventListener("click", function () {
@@ -370,6 +345,7 @@
 
       currentMonthIndex -= 1;
       selectedDateKey = null;
+      filterMode = "month";
       render();
     });
 
@@ -380,8 +356,17 @@
 
       currentMonthIndex += 1;
       selectedDateKey = null;
+      filterMode = "month";
       render();
     });
+
+    if (resetButton) {
+      resetButton.addEventListener("click", function () {
+        selectedDateKey = null;
+        filterMode = "all";
+        render();
+      });
+    }
 
     render();
   }
