@@ -249,7 +249,7 @@
 
     function createDetailItem(eventItem) {
       var listItem = document.createElement("li");
-      var header = document.createElement("div");
+      var footer = document.createElement("div");
       var badge = document.createElement("span");
       var link = document.createElement("a");
       var meta = document.createElement("span");
@@ -262,11 +262,11 @@
       listItem.className = "events-calendar-event";
       listItem.className += " event-type-" + eventItem.type;
 
-      header.className = "events-calendar-event-header";
+      footer.className = "events-calendar-event-footer";
       badge.className = "events-type-badge";
+      badge.className += " events-calendar-event-badge";
       badge.className += " event-type-" + eventItem.type;
       badge.textContent = eventItem.typeLabel;
-      header.appendChild(badge);
 
       link.href = eventItem.url;
       link.target = "_blank";
@@ -276,9 +276,10 @@
       meta.className = "events-calendar-event-meta";
       meta.textContent = metaParts.join(" | ");
 
-      listItem.appendChild(header);
       listItem.appendChild(link);
-      listItem.appendChild(meta);
+      footer.appendChild(meta);
+      footer.appendChild(badge);
+      listItem.appendChild(footer);
 
       return listItem;
     }

@@ -97,8 +97,8 @@
 }
 
 .event-type-imported {
-  --event-color: #9a4057;
-  --event-soft: rgba(154, 64, 87, 0.12);
+  --event-color: #6f7a83;
+  --event-soft: rgba(111, 122, 131, 0.14);
 }
 
 .events-type-badge {
@@ -296,13 +296,25 @@
 
 .events-calendar-event-meta {
   display: block;
+  flex: 1 1 180px;
   margin: 0;
   color: #6f7a83;
   font-size: 16px;
 }
 
-.events-calendar-event-header {
-  margin-bottom: 12px;
+.events-calendar-event-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.events-calendar-event-badge {
+  min-width: 68px;
+  padding: 4px 8px;
+  font-size: 11px;
+  align-self: flex-end;
 }
 
 .events-calendar-event.is-empty {
@@ -343,6 +355,60 @@
   border-radius: 8px;
   background: white;
   box-shadow: 0 10px 24px rgba(7, 47, 86, 0.05);
+}
+
+.events-item.event-type-imported {
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 12px;
+  border-left-width: 4px;
+  box-shadow: none;
+}
+
+.events-item.event-type-imported .events-date-badge {
+  min-height: 0;
+  padding: 8px 6px;
+  gap: 2px;
+}
+
+.events-item.event-type-imported .events-day {
+  font-size: 24px;
+}
+
+.events-item.event-type-imported .events-month {
+  margin-top: 0;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.events-item.event-type-imported .events-date-range {
+  margin-top: 2px;
+  font-size: 9px;
+}
+
+.events-item.event-type-imported .events-item-topline {
+  gap: 8px 10px;
+  margin-bottom: 4px;
+}
+
+.events-item.event-type-imported .events-type-badge {
+  min-width: 64px;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+.events-item.event-type-imported .events-item-date {
+  font-size: 13px;
+}
+
+.events-item.event-type-imported .events-item-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.events-item.event-type-imported .events-item-meta {
+  font-size: 14px;
 }
 
 .events-date-badge {

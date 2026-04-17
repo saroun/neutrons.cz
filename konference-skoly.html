@@ -127,9 +127,6 @@ permalink: /konference-skoly
         <div class="events-date-badge">
           <span class="events-day">{{ event.date | date: "%-d" }}</span>
           <span class="events-month">{{ event.date | date: "%m/%Y" }}</span>
-          {% if has_end_date %}
-            <span class="events-date-range">do {{ event.end_date | date: "%-d. %-m. %Y" }}</span>
-          {% endif %}
         </div>
 
         <div class="events-content">
