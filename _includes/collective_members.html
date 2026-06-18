@@ -6,7 +6,7 @@
       {%- assign max_height = visible_members | map: "height" | sort | last -%}
       {%- for member in visible_members -%}
         <div class="member-item" style="min-height: {{ max_height }}px;">
-          <a href="{{ member.url }}"><img src="{{ member.logo | relative_url }}" alt="{{ member.name }}" style="max-width: 100%; height: auto; max-height: {{ member.height }}px;"></a>
+          <a href="{{ member.link }}"><img src="{{ member.logo | relative_url }}" alt="{{ member.name }}" style="max-width: 100%; height: auto; max-height: {{ member.height }}px;"></a>
         </div>
       {%- endfor -%}
     </div> <!-- .partners -->

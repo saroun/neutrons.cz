@@ -1,8 +1,9 @@
 ---
 name: "VSCHT"
 order: 2
-url: "https://www.vscht.cz"
+link: "https://www.vscht.cz"
 height: 70
 logo: "/images/logo_vscht_en.png"
 visible: true
----
+---
+
