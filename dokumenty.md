@@ -16,19 +16,18 @@ Ke stažení zde jsou dostupné:
         <tr>
         <th>Datum schůze</th>
         <th>Soubor</th>
-        <th>Zapsal(a)</th>
         </tr>
     </thead>
     <tbody>
-        {% for f in site.data.zapisy %}
+        {%- assign visible_docs = site.data.zpravy | where: "visible", "true" | sort: "datum" -%}
+        {% for f in visible_docs %}
         <tr>
         <td>{{ f.datum }}</td>
         <td><a href="{{ site.baseurl }}/docs/{{ f.soubor }}"><i class="fas fa-file-pdf"></i> {{ f.soubor }}</a></td>
-        <td>{{ f.zapsal }}</td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="3">Žádné výroční zprávy zatím nejsou k dispozici, spolek byl založen v roce 2025.</td>
+            <td colspan="2">Žádné výroční zprávy nejsou zatím k dispozici.</td>
         </tr>
         {% endfor %}
     </tbody>
